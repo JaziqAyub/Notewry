@@ -1,0 +1,16 @@
+{
+  "compilerOptions": {
+    "target": "ES6",                        // Targets ECMAScript 6
+    "module": "commonjs",                   // CommonJS module system (Node.js compatible)
+    "esModuleInterop": true,                // Enables compatibility with ES6-style imports/exports
+    "skipLibCheck": true,                   // Skips type-checking declaration files
+    "types": ["node"],                      // Includes Node.js type definitions
+    "outDir": "./dist",                     // Compiled files go into the 'dist' folder
+    "rootDir": "./src",                     // Source files are located in the 'src' folder
+    "strict": true,                         // Enables all strict type-checking options
+    "resolveJsonModule": true,              // Allows importing JSON files as modules
+    "forceConsistentCasingInFileNames": true // Enforces consistent file name casing
+  },
+  "include": ["src/**/*", "src/models", "src/index.ts"],                  // Includes all files in the 'src' folder
+  "exclude": ["node_modules", "dist"]       // Excludes unnecessary folders
+}
