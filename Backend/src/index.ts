@@ -1,7 +1,7 @@
 import express, { Request, Response } from "express";
 import cors from "cors";
 require("dotenv").config();
-import jwt from "jsonwebtoken";
+import jwt, { JwtPayload } from "jsonwebtoken";
 
 import config from "../config.json";
 import mongoose from "mongoose";
@@ -22,6 +22,7 @@ app.use(
   })
 );
 
+//Get
 app.get("/", (req: Request, res: Response) => {
   res.json({ data: "hello" });
 });
@@ -113,39 +114,137 @@ app.post("/login", async (req: Request, res: Response): Promise<void> => {
 });
 
 //ADDNOTE
-app.post("/add-note", async (req: Request, res: Response): Promise<void> => {
-  const { title, content, tags } = req.body;
-  const { user } = req.user;
+app.post(
+  "/add-note",
+  authenticateToken,
+  async (req: Request, res: Response): Promise<void> => {
+    const { title, content, tags } = req.body;
+    const user = req.user as JwtPayload & { user: { _id: string } };
 
-  if (!title) {
-    res.status(400).json({ error: true, message: "Title is required" });
+    if (!title) {
+      res.status(400).json({ error: true, message: "Title is required" });
+      return;
+    }
+    if (!content) {
+      res.status(400).json({ error: true, message: "Content is required" });
+      return;
+    }
+
+    try {
+      const note = new Note({
+        title,
+        content,
+        tags: tags || [],
+        userId: user.user._id,
+      });
+
+      await note.save();
+
+      res.json({
+        error: false,
+        note,
+        message: "Note added successfuly",
+      });
+    } catch (error) {
+      res.status(500).json({
+        error: true,
+        message: "Internal Server Error",
+      });
+      return;
+    }
   }
-  if (!config) {
-    res.status(400).json({ error: true, message: "Content is required" });
+);
+
+//EDITNOTE
+app.put(
+  "/edit-note/:noteId",
+  authenticateToken,
+  async (req: Request, res: Response): Promise<void> => {
+    const noteId = req.params.noteId;
+    const { title, content, tags, isPinned } = req.body;
+    const user = req.user as JwtPayload & { user: { _id: string } };
+
+    if (!title && !content && !tags) {
+      res.status(400).json({ error: true, message: "No changes provided" });
+    }
+
+    try {
+      const note = await Note.findOne({ _id: noteId, userId: user.user._id });
+      if (!note) {
+        res.status(400).json({ error: true, messsage: "Note not found" });
+      }
+      if (title) note.title = title;
+      if (content) note.content = content;
+      if (tags) note.tags = tags;
+      if (isPinned) note.isPinned = isPinned;
+
+      await note.save();
+
+      res
+        .status(200)
+        .json({ error: false, note, message: "Note updated successfuly" });
+    } catch (error) {
+      console.log(error);
+      res.status(500).json({
+        error: true,
+        message: "Internal Server error",
+      });
+      return;
+    }
   }
+);
 
-  try {
-    const note = new Note({
-      title,
-      content,
-      tags: tags || [],
-      userId: user._id,
-    });
-
-    await note.save();
-
-    res.json({
-      error: false,
-      note,
-      message: "Note added successfuly",
-    });
-  } catch (error) {
-    res.status(500).json({
-      error: true,
-      message: "Internal Server Error",
-    });
+//GetAllNotes
+app.get(
+  "/get-all-notes",
+  authenticateToken,
+  async (req: Request, res: Response): Promise<void> => {
+    const user = req.user as JwtPayload & { user: { _id: string } };
+    try {
+      const notes = await Note.find({ userId: user.user._id }).sort({
+        isPinned: -1,
+      });
+      res.json({
+        error: false,
+        notes,
+        message: "All notes retrieved successfuly",
+      });
+    } catch (error) {
+      res.status(500).json({
+        error: true,
+        message: "Internal Server Error",
+      });
+    }
   }
-});
+);
+
+//DeleteNOtes
+app.delete("/delete-note/:noteId",
+  authenticateToken,
+  async (req: Request, res: Response): Promise<void> => {
+    const  noteId  = req.params.noteId;
+    const user = req.user as JwtPayload & { user: { _id: string } };
+    try {
+      const note = await Note.findOne({ _id: noteId, userId: user.user._id });
+      if (!note) {
+        res.status(400).json({ error: true, message: "Note not found" });
+        return
+      }
+      await Note.deleteOne({ _id: noteId, userId: user.user._id });
+      res.json({
+        error: false,
+        message: "Note deleted successfuly",
+      });
+      return
+    } catch (error) {
+      res.status(500).json({
+        error: true,
+        message: "Internal server error",
+      });
+      return
+    }
+  }
+);
 
 const PORT = 8000;
 app.listen(`${PORT}`, () => {
