@@ -1,14 +1,17 @@
 import { useState } from "react";
 import Navbar from "../../components/Navbar/Navbar";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import PasswordInput from "../../components/Input/PasswordInput";
 import { validateEmail } from "../../utils/helper";
+import axiosInstance from "../../utils/AxiosInstance";
 
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   // const [error,setError] = useState(null)
   const [error, setError] = useState<string | null>(null);
+
+const navigate = useNavigate()
 
   const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -22,6 +25,26 @@ const Login = () => {
     }
     setError("");
     //login api
+    try {
+      const response = await axiosInstance.post("/login", {
+        email : email,
+        password: password
+      })
+
+      //Handle login response
+      if (response.data && response.data.accessToken) {
+        localStorage.setItem("token", response.data.accessToken)
+        navigate("/dashboard")
+      }
+    } catch (err: unknown) {
+      if (typeof err === "object" && err !== null && "response" in err) {
+        const errorObj = err as { response?: { data?: { message?: string } } };
+        setError(errorObj.response?.data?.message || "An unexpected error occurred.");
+      } else {
+        setError("An unexpected error occurred. Please try again later.");
+      }
+    }
+
   };
 
   return (

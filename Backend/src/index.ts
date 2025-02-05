@@ -2,19 +2,23 @@ import express, { Request, Response } from "express";
 import cors from "cors";
 require("dotenv").config();
 import jwt, { JwtPayload } from "jsonwebtoken";
-
 import config from "../config.json";
 import mongoose from "mongoose";
 const User = require("./models/user.model");
 const Note = require("./models/note.model");
+import { authenticateToken } from "./utils";
 
-mongoose.connect(config.connectionString);
+mongoose
+  .connect(config.connectionString)
+  .then(() => {
+    console.log("Db Connected");
+  })
+  .catch((err) => {
+    console.error("❌ MongoDB Connection Failed:", err);
+  });
 
 const app = express();
 app.use(express.json());
-
-import { authenticateToken } from "./utils";
-import { error } from "console";
 
 app.use(
   cors({
@@ -113,6 +117,31 @@ app.post("/login", async (req: Request, res: Response): Promise<void> => {
   }
 });
 
+//GetUser
+app.get(
+  "/get-user",
+  authenticateToken,
+  async (req: Request, res: Response): Promise<void> => {
+    const { user } = req.user as JwtPayload & { user: { _id: string } };
+    const isUser = await User.findOne({ _id: user._id });
+    if (!isUser) {
+      res.sendStatus(400);
+      return;
+    }
+
+    res.status(200).json({
+      error: false,
+      message: "User found successfuly",
+
+      fullName: isUser.fullName,
+      email: isUser.email,
+      _id: isUser._id,
+      createdOn: isUser.createdOn,
+    });
+  }
+);
+
+//Notes
 //ADDNOTE
 app.post(
   "/add-note",
@@ -219,29 +248,68 @@ app.get(
 );
 
 //DeleteNOtes
-app.delete("/delete-note/:noteId",
+app.delete(
+  "/delete-note/:noteId",
   authenticateToken,
   async (req: Request, res: Response): Promise<void> => {
-    const  noteId  = req.params.noteId;
+    const noteId = req.params.noteId;
     const user = req.user as JwtPayload & { user: { _id: string } };
     try {
       const note = await Note.findOne({ _id: noteId, userId: user.user._id });
       if (!note) {
         res.status(400).json({ error: true, message: "Note not found" });
-        return
+        return;
       }
       await Note.deleteOne({ _id: noteId, userId: user.user._id });
       res.json({
         error: false,
         message: "Note deleted successfuly",
       });
-      return
+      return;
     } catch (error) {
       res.status(500).json({
         error: true,
         message: "Internal server error",
       });
-      return
+      return;
+    }
+  }
+);
+
+//UpdateIsPinned
+app.put(
+  "/update-note-pinned/:noteId",
+  authenticateToken,
+  async (req: Request, res: Response): Promise<void> => {
+    const noteId = req.params.noteId;
+    const { isPinned } = req.body;
+    const { user } = req.user as JwtPayload & { user: { _id: string } };
+
+    if (!isPinned) {
+      res.status(400).json({ error: true, message: "No changes provided" });
+      return;
+    }
+
+    try {
+      const note = await Note.findOne({ _id: noteId, userId: user._id });
+      if (!note) {
+        res.status(400).json({ error: true, messsage: "Note not found" });
+      }
+
+      if (isPinned) note.isPinned = isPinned;
+
+      await note.save();
+
+      res
+        .status(200)
+        .json({ error: false, note, message: "Note updated successfuly" });
+    } catch (error) {
+      console.log(error);
+      res.status(500).json({
+        error: true,
+        message: "Internal Server error",
+      });
+      return;
     }
   }
 );
