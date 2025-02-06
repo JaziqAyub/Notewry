@@ -14,7 +14,7 @@ mongoose
     console.log("Db Connected");
   })
   .catch((err) => {
-    console.error("❌ MongoDB Connection Failed:", err);
+    console.error("MongoDB Connection Failed:", err);
   });
 
 const app = express();
