@@ -3,13 +3,21 @@ import ProfileInfo from "../Cards/ProfileInfo";
 import SearchBar from "../SearchBar/SearchBar";
 import { useState } from "react";
 
+interface UserInfo {
+  fullName: string;
+  // Add any other properties you expect from the backend here.
+}
 
+// Define the props for Navbar, ensuring userInfo is not nullable
+interface NavbarProps {
+  userInfo?: UserInfo;
+}
 
-const Navbar = ({userInfo}) => {
+const Navbar: React.FC<NavbarProps> = ({ userInfo }) => {
   const [searchQuery, setSearchQuery] = useState("");
   const navigate = useNavigate();
   const onLogout = () => {
-    localStorage.clear()
+    localStorage.clear();
     navigate("/login");
   };
 
@@ -21,7 +29,6 @@ const Navbar = ({userInfo}) => {
   return (
     <div className="bg-white flex items-center justify-between px-6 py-2 drop-shadow">
       <h2 className="text-xl font-medium text-black py-2">Notewry</h2>
-     
 
       <SearchBar
         value={searchQuery}
@@ -32,7 +39,12 @@ const Navbar = ({userInfo}) => {
         onClearSearch={onClearSearch}
       />
 
-      <ProfileInfo userInfo={userInfo} onLogout={onLogout} />
+      {userInfo ? (
+        <ProfileInfo userInfo={userInfo} onLogout={onLogout} />
+      ) : (
+        // Optionally render a placeholder, guest label, or nothing when userInfo is missing
+        <div className="text-sm font-medium">Guest</div>
+      )}
     </div>
   );
 };

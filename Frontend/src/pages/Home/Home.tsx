@@ -2,12 +2,17 @@ import { MdAdd } from "react-icons/md";
 import NoteCard from "../../components/Cards/NoteCard";
 import Navbar from "../../components/Navbar/Navbar";
 import AddEditNotes from "./AddEditNotes";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 // import { data } from "react-router-dom";
 import Modal from "react-modal";
 import { useNavigate } from "react-router-dom";
 import axiosInstance from "../../utils/AxiosInstance";
 import axios from "axios";
+
+interface UserInfo {
+  fullName: string;
+  // add other properties if needed
+}
 
 const Home = () => {
   const [openAddEditModal, setOpenAddEditModal] = useState({
@@ -16,16 +21,17 @@ const Home = () => {
     data: null,
   });
 
-  const [userInfo, setUserInfo] = useState(null)
+  const [userInfo, setUserInfo] = useState<UserInfo | null>(null);
 
   const navigate = useNavigate()
 
   //Get User Info
-  const getUserInfo = async () =>{
+  const getUserInfo = useCallback(async () => {
     try {
-      const response = await axiosInstance.get("/get-user")
-      if (response.data && response.data.user){
-        setUserInfo(response.data.user)
+      const response = await axiosInstance.get("/get-user");
+      // Check if the response has a fullName and no error
+      if (response.data && !response.data.error && response.data.fullName) {
+        setUserInfo(response.data);
       }
     } catch (error: unknown) {
       if (axios.isAxiosError(error) && error.response?.status === 401) {
@@ -33,13 +39,16 @@ const Home = () => {
         navigate("/login");
       }
     }
-  };
+  }, [navigate]);
 
-  useEffect(()=>{
-    getUserInfo()
-    return () => {}
-  }, [])
+  useEffect(() => {
+    getUserInfo();
+  }, [getUserInfo]);
 
+ // Wait for userInfo to be loaded before rendering Navbar
+ if (!userInfo) {
+  return <div>Loading...</div>;
+}
 
   return (
     <>
