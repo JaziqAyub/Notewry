@@ -5,7 +5,7 @@ interface NoteCardProps {
   title: string;
   date?: string;
   content: string;
-  tags?: string;
+  tags?: string[]; // Changed from string to string[]
   isPinned?: boolean;
   onEdit?: () => void;
   onDelete?: () => void;
@@ -16,7 +16,7 @@ const NoteCard: React.FC<NoteCardProps> = ({
   title,
   date,
   content,
-  tags,
+  tags = [], // Provide a default empty array
   isPinned,
   onEdit,
   onDelete,
@@ -37,17 +37,18 @@ const NoteCard: React.FC<NoteCardProps> = ({
       <p className="text-xs text-slate-600 mt-2">{content?.slice(0, 60)}</p>
       <div className="flex items-center justify-between mt-2">
         <div className="text-xs text-slate-500">
-          {tags}
-          <div className="flex items-center gap-2 mt-2">
-            <MdCreate
-              className="icon-btn hover:text-green-600"
-              onClick={onEdit}
-            />
-            <MdDelete
-              className="icon-btn hover:text-red-500"
-              onClick={onDelete}
-            />
-          </div>
+          {tags.map((item) => `#${item}`)}{" "}
+        </div>
+
+        <div className="flex items-center gap-2 mt-2">
+          <MdCreate
+            className="icon-btn hover:text-green-600"
+            onClick={onEdit}
+          />
+          <MdDelete
+            className="icon-btn hover:text-red-500"
+            onClick={onDelete}
+          />
         </div>
       </div>
     </div>

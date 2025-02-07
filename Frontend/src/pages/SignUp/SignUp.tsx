@@ -1,14 +1,16 @@
 import { useState } from "react";
 import Navbar from "../../components/Navbar/Navbar";
 import PasswordInput from "../../components/Input/PasswordInput";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { validateEmail } from "../../utils/helper";
+import axiosInstance from "../../utils/AxiosInstance";
 
 const SignUp = () => {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const navigate = useNavigate()
 
   const handleSignUp = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -27,6 +29,33 @@ const SignUp = () => {
     setError("");
 
     //signup api
+    try {
+      const response = await axiosInstance.post("/create-account", {
+        fullName: name,
+        email: email,
+        password: password,
+      });
+
+      //Handle succesfful registration response
+      if (response.data && response.data.error) {
+        setError(response.data.message)
+        return
+      }
+
+      if(response.data && response.data.accessToken) {
+        localStorage.setItem("token", response.data.accessToken)
+        navigate("/dashboard")
+      }
+    } catch (err: unknown) {
+      if (typeof err === "object" && err !== null && "response" in err) {
+        const errorObj = err as { response?: { data?: { message?: string } } };
+        setError(
+          errorObj.response?.data?.message || "An unexpected error occurred."
+        );
+      } else {
+        setError("An unexpected error occurred. Please try again later.");
+      }
+    }
   };
 
   return (

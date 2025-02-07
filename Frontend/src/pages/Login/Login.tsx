@@ -49,7 +49,7 @@ const navigate = useNavigate()
 
   return (
     <>
-      <Navbar userInfo={{ fullName: "Gust" }} />
+      <Navbar userInfo={{ fullName: "Please Login" }} />
 
 
       <div className="flex items-center justify-center mt-28">

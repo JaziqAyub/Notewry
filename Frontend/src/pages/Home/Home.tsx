@@ -8,14 +8,32 @@ import Modal from "react-modal";
 import { useNavigate } from "react-router-dom";
 import axiosInstance from "../../utils/AxiosInstance";
 import axios from "axios";
+import moment from "moment";
 
 interface UserInfo {
   fullName: string;
   // add other properties if needed
 }
 
+// Define the Note interface (or NoteData)
+export interface Note {
+  _id: string;
+  title: string;
+  content: string;
+  tags: string[];
+  createdOn: string; // or Date if you prefer
+  isPinned: boolean;
+}
+
+// Define the modal state interface; note that data can be null
+interface OpenModalState {
+  isShown: boolean;
+  type: "add" | "edit";
+  data: Note | null;
+}
+
 const Home = () => {
-  const [openAddEditModal, setOpenAddEditModal] = useState({
+  const [openAddEditModal, setOpenAddEditModal] = useState<OpenModalState>({
     isShown: false,
     type: "add",
     data: null,
@@ -23,7 +41,24 @@ const Home = () => {
 
   const [userInfo, setUserInfo] = useState<UserInfo | null>(null);
 
-  const navigate = useNavigate()
+  interface Note {
+    _id: string;
+    title: string;
+    content: string;
+    tags: string[];
+    createdOn: string; // or Date if you prefer
+    isPinned: boolean;
+  }
+
+  const [allNotes, setAllNotes] = useState<Note[]>([]);
+
+
+  const navigate = useNavigate();
+
+  //EditNote
+  const handleEdit = (noteDetails: Note) => {
+    setOpenAddEditModal ({isShown: true, data: noteDetails, type: "edit"})
+  }
 
   //Get User Info
   const getUserInfo = useCallback(async () => {
@@ -41,31 +76,51 @@ const Home = () => {
     }
   }, [navigate]);
 
+  //GETALLNOTES
+  const getAllNotes = async () => {
+    try {
+      const response = await axiosInstance.get("/get-all-notes");
+      if (response.data && response.data.notes) {
+        setAllNotes(response.data.notes);
+      }
+    } catch (error) {
+      console.log(
+        "An unexpected error occured. Please try again later!",
+        error
+      );
+    }
+  };
+
   useEffect(() => {
+    getAllNotes();
     getUserInfo();
   }, [getUserInfo]);
 
- // Wait for userInfo to be loaded before rendering Navbar
- if (!userInfo) {
-  return <div>Loading...</div>;
-}
+  // Wait for userInfo to be loaded before rendering Navbar
+  if (!userInfo) {
+    return <div>Loading...</div>;
+  }
 
   return (
     <>
-      <Navbar userInfo = {userInfo} />
+      <Navbar userInfo={userInfo} />
 
       <div className="container mx-auto">
         <div className="grid grid-cols-3 gap-4 mt-8">
-          <NoteCard
-            title="Meeting on 7th April"
-            date="3rd April 2024"
-            content="Meeting on 7th April"
-            tags="#meeting"
-            isPinned={true}
-            onEdit={() => {}}
-            onDelete={() => {}}
-            onPinNote={() => {}}
-          />
+          {allNotes.map((item)=>(
+             <NoteCard
+             key={item._id}
+             title={item.title}
+             date={moment(item.createdOn).format('Do MMM YYYY')}
+             content={item.content}
+             tags={item.tags} // Join the array into a string
+             isPinned={item.isPinned}
+             onEdit={() => handleEdit(item)}
+             onDelete={() => {}}
+             onPinNote={() => {}}
+           />
+          ))}
+         
         </div>
       </div>
       <button
@@ -91,10 +146,11 @@ const Home = () => {
       >
         <AddEditNotes
           type={openAddEditModal.type}
-          noteData={openAddEditModal.data}
+          noteData={openAddEditModal.data || {}}
           onClose={() => {
             setOpenAddEditModal({ isShown: false, type: "add", data: null });
           }}
+          getAllNotes = {getAllNotes}
         />
       </Modal>
     </>
