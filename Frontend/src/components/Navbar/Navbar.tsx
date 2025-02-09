@@ -1,4 +1,4 @@
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import ProfileInfo from "../Cards/ProfileInfo";
 import SearchBar from "../SearchBar/SearchBar";
 import { useState } from "react";
@@ -11,9 +11,11 @@ interface UserInfo {
 // Define the props for Navbar, ensuring userInfo is not nullable
 interface NavbarProps {
   userInfo?: UserInfo;
+  onSearchNote: (query: string) => Promise<void>;
+  handleClearSearch: () => void;
 }
 
-const Navbar: React.FC<NavbarProps> = ({ userInfo }) => {
+const Navbar: React.FC<NavbarProps> = ({ userInfo, onSearchNote, handleClearSearch }) => {
   const [searchQuery, setSearchQuery] = useState("");
   const navigate = useNavigate();
   const onLogout = () => {
@@ -21,14 +23,25 @@ const Navbar: React.FC<NavbarProps> = ({ userInfo }) => {
     navigate("/login");
   };
 
-  const handleSearch = () => {};
+  const handleSearch = () => {
+    if (searchQuery){
+      onSearchNote(searchQuery)
+    }
+  };
 
   const onClearSearch = () => {
     setSearchQuery("");
+    handleClearSearch()
   };
+
   return (
+    
     <div className="bg-white flex items-center justify-between px-6 py-2 drop-shadow">
-      <h2 className="text-xl font-medium text-black py-2">Notewry</h2>
+      <Link to="/dashboard">
+        <h2 className="text-xl font-medium text-black py-2">
+          Notewry
+        </h2>
+      </Link>
 
       <SearchBar
         value={searchQuery}

@@ -12,23 +12,24 @@ interface NoteData {
   tags?: string[];
 }
 
-
 interface AddEditNotesProps {
   noteData: NoteData;
   type: string;
   onClose: () => void;
   getAllNotes: () => Promise<void>; // Added getAllNotes prop
+  showToastMessage: (message: string, type: string) => void;
 }
 
 const AddEditNotes: React.FC<AddEditNotesProps> = ({
   noteData,
   type,
   onClose,
-  getAllNotes, // Destructure getAllNotes from props
+  getAllNotes, // Destructure getAllNotes from
+  showToastMessage,
 }) => {
   const [title, setTitle] = useState(noteData.title || "");
-  const [content, setContent] = useState(noteData.content ||"");
-  const [tags, setTags] = useState<string[]>(noteData.tags ||[]);
+  const [content, setContent] = useState(noteData.content || "");
+  const [tags, setTags] = useState<string[]>(noteData.tags || []);
   const [error, setError] = useState<string | null>(null);
 
   // Add note API
@@ -39,10 +40,11 @@ const AddEditNotes: React.FC<AddEditNotesProps> = ({
         content,
         tags,
       });
-      
+
       if (response.data && response.data.note) {
-        getAllNotes()
-        onClose()
+        showToastMessage("Note Added Successfully", "success");
+        getAllNotes();
+        onClose();
       }
     } catch (error: unknown) {
       if (
@@ -58,17 +60,18 @@ const AddEditNotes: React.FC<AddEditNotesProps> = ({
 
   // Edit note API
   const editNote = async () => {
-    const noteId = noteData._id
+    const noteId = noteData._id;
     try {
       const response = await axiosInstance.put("/edit-note/" + noteId, {
         title,
         content,
         tags,
       });
-      
+
       if (response.data && response.data.note) {
-        getAllNotes()
-        onClose()
+        showToastMessage("Note Updated Successfully", "success");
+        getAllNotes();
+        onClose();
       }
     } catch (error: unknown) {
       if (
@@ -137,7 +140,7 @@ const AddEditNotes: React.FC<AddEditNotesProps> = ({
         className="btn-primary font-medium mt-5 p-3"
         onClick={handleAddNote}
       >
-        {type === 'edit' ? 'UPDATE' : 'ADD'}
+        {type === "edit" ? "UPDATE" : "ADD"}
       </button>
     </div>
   );
