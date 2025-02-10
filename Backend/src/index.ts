@@ -7,6 +7,8 @@ import mongoose from "mongoose";
 const User = require("./models/user.model");
 const Note = require("./models/note.model");
 import { authenticateToken } from "./utils";
+import { error } from "console";
+import { title } from "process";
 
 mongoose
   .connect(config.connectionString)
@@ -285,7 +287,7 @@ app.put(
     const { isPinned } = req.body;
     const { user } = req.user as JwtPayload & { user: { _id: string } };
 
-    if (!isPinned) {
+    if (isPinned === undefined) {
       res.status(400).json({ error: true, message: "No changes provided" });
       return;
     }
@@ -296,7 +298,7 @@ app.put(
         res.status(400).json({ error: true, messsage: "Note not found" });
       }
 
-      if (isPinned) note.isPinned = isPinned;
+      note.isPinned = isPinned;
 
       await note.save();
 
@@ -314,7 +316,44 @@ app.put(
   }
 );
 
-const PORT = 8000;
+//SearchApi
+app.get(
+  "/search-notes/",
+  authenticateToken,
+  async (req: Request, res: Response): Promise<void> => {
+    const {user} = req.user as JwtPayload & { user: { _id: string } };
+   const {query} = req.query
+
+   if (!query || typeof query !== 'string'){
+     res.status(400).json({error:true, message: "Search query is required"
+     })
+     return
+   }
+
+   try {
+    const matchingNotes =await Note.find({
+      userId: user._id,
+      $or: [
+        { title :{ $regex: new RegExp(query, "i")}},
+        { content :{ $regex: new RegExp(query, "i")}},
+      ],
+    })
+
+    res.json({
+      error:false,
+      notes: matchingNotes,
+      message: "Notes matching the search query retreived successfully"
+    })
+   } catch (error) {
+    res.status(500).json({
+      error:true,
+      message: "Internal Server Error"
+    })
+    return
+   }
+  });
+
+const PORT = process.env.PORT
 app.listen(`${PORT}`, () => {
   console.log(`Server running on port ${PORT}`);
 });

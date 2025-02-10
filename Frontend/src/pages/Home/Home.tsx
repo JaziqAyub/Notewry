@@ -3,7 +3,6 @@ import NoteCard from "../../components/Cards/NoteCard";
 import Navbar from "../../components/Navbar/Navbar";
 import AddEditNotes from "./AddEditNotes";
 import { useCallback, useEffect, useState } from "react";
-// import { data } from "react-router-dom";
 import Modal from "react-modal";
 import { useNavigate } from "react-router-dom";
 import axiosInstance from "../../utils/AxiosInstance";
@@ -184,7 +183,7 @@ const Home = () => {
       if (response.data && response.data.note) {
         showToastMessage("Note Pinned Successfully", "success")
         getAllNotes()
-      }
+      } 
     } catch (error) {
      console.log(error)
     }
