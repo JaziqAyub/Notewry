@@ -67,7 +67,7 @@ const Navbar: React.FC<NavbarProps> = ({ userInfo, onSearchNote, handleClearSear
             <h2 className="text-xl font-medium text-black py-2">Notewry</h2>
           </Link>
         </div>
-        <div className="mt-2">
+        <div className="mt-2 flex items-center justify-center">
           <SearchBar
             value={searchQuery}
             onchange={({ target }) => setSearchQuery(target.value)}
