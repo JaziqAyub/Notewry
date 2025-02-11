@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { useState } from "react";
 import Navbar from "../../components/Navbar/Navbar";
 import { Link, useNavigate } from "react-router-dom";
@@ -47,9 +48,17 @@ const navigate = useNavigate()
 
   };
 
+  
+
   return (
     <>
-      <Navbar userInfo={{ fullName: "Please Login" }} />
+      // In Login.tsx
+<Navbar 
+  userInfo={{ fullName: "Please Login" }} 
+  onSearchNote={async (_query: string) => { /* no-op or fallback behavior */ }} 
+  handleClearSearch={() => { /* no-op */ }}
+/>
+
 
 
       <div className="flex items-center justify-center mt-28">

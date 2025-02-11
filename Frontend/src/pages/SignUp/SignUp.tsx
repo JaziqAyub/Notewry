@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { useState } from "react";
 import Navbar from "../../components/Navbar/Navbar";
 import PasswordInput from "../../components/Input/PasswordInput";
@@ -60,7 +61,12 @@ const SignUp = () => {
 
   return (
     <>
-      <Navbar />
+      // In SignUp.tsx
+<Navbar 
+  onSearchNote={async (_query: string) => {}} 
+  handleClearSearch={() => {}} 
+/>
+
 
       <div className="flex items-center justify-center mt-28">
         <div className="w-96 border rounded bg-white px-7 py-10">
