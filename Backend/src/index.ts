@@ -101,7 +101,7 @@ app.post("/login", async (req: Request, res: Response): Promise<void> => {
 
   if (userInfo.email == email && userInfo.password == password) {
     const user = { user: userInfo };
-    const accessToken = jwt.sign(user, process.env.SECRET_key as string, {
+    const accessToken = jwt.sign(user, process.env.SECRET_KEY as string, {
       expiresIn: "3600m",
     });
 
