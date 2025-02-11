@@ -52,7 +52,7 @@ const navigate = useNavigate()
 
   return (
     <>
-      // In Login.tsx
+      {/* // In Login.tsx */}
 <Navbar 
   userInfo={{ fullName: "Please Login" }} 
   onSearchNote={async (_query: string) => { /* no-op or fallback behavior */ }} 

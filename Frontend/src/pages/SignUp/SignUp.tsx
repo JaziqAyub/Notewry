@@ -61,7 +61,7 @@ const SignUp = () => {
 
   return (
     <>
-      // In SignUp.tsx
+      {/* // In SignUp.tsx */}
 <Navbar 
   onSearchNote={async (_query: string) => {}} 
   handleClearSearch={() => {}} 
